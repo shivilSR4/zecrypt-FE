@@ -9,7 +9,6 @@ import {
   FileText 
 } from "lucide-react";
 import { useTranslator } from "@/hooks/use-translations";
-import { useUser } from "@stackframe/stack";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/libs/Redux/store";

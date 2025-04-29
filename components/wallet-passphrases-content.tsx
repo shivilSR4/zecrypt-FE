@@ -2,7 +2,6 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Wallet, Plus, Pencil, Trash2, Eye, EyeOff, Copy, Check, Search, X, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -43,6 +42,19 @@ interface WalletPassphrase {
   lastAccessed: Date
 }
 
+// Interface for API response data
+interface ApiWalletResponse {
+  doc_id: string
+  name: string
+  wallet_type: string
+  phrase: string
+  wallet_address?: string
+  tag?: string[]
+  notes?: string
+  created_at: string
+  last_accessed?: string
+}
+
 // Wallet types for dropdown
 const walletTypes = [
   "Bitcoin",
@@ -57,7 +69,6 @@ const walletTypes = [
 ]
 
 export function WalletPassphrasesContent() {
-  const router = useRouter()
   const [walletPassphrases, setWalletPassphrases] = useState<WalletPassphrase[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filteredPassphrases, setFilteredPassphrases] = useState<WalletPassphrase[]>([])
@@ -89,29 +100,29 @@ export function WalletPassphrasesContent() {
   })
 
   // Redux state
-  const accessToken = useSelector((state: RootState) => state.user.userData?.access_token);
-  const selectedWorkspaceId = useSelector((state: RootState) => state.workspace.selectedWorkspaceId);
-  const selectedProjectId = useSelector((state: RootState) => state.workspace.selectedProjectId);
+  const accessToken = useSelector((state: RootState) => state.user.userData?.access_token)
+  const selectedWorkspaceId = useSelector((state: RootState) => state.workspace.selectedWorkspaceId)
+  const selectedProjectId = useSelector((state: RootState) => state.workspace.selectedProjectId)
 
   // Fetch wallet passphrases on component mount or when workspace/project changes
   useEffect(() => {
     const fetchWalletPassphrases = async () => {
       if (!selectedWorkspaceId || !selectedProjectId || !accessToken) {
-        console.log("Missing required parameters for fetching wallet passphrases");
-        return;
+        console.log("Missing required parameters for fetching wallet passphrases")
+        return
       }
 
-      setIsLoading(true);
+      setIsLoading(true)
       try {
         const response = await getWalletPassphrases(
           selectedWorkspaceId,
           selectedProjectId,
           accessToken
-        );
+        )
 
         if (response.data && Array.isArray(response.data)) {
           // Transform API response to match component data structure
-          const walletData = response.data.map((wallet: any) => ({
+          const walletData = response.data.map((wallet: ApiWalletResponse) => ({
             id: wallet.doc_id,
             name: wallet.name,
             walletType: wallet.wallet_type,
@@ -121,25 +132,25 @@ export function WalletPassphrasesContent() {
             notes: wallet.notes || "",
             createdAt: new Date(wallet.created_at),
             lastAccessed: new Date(wallet.last_accessed || wallet.created_at),
-          }));
+          }))
 
-          setWalletPassphrases(walletData);
-          console.log("Wallet passphrases loaded:", walletData.length);
+          setWalletPassphrases(walletData)
+          console.log("Wallet passphrases loaded:", walletData.length)
         }
       } catch (error) {
-        console.error("Failed to fetch wallet passphrases:", error);
+        console.error("Failed to fetch wallet passphrases:", error)
         toast({
           title: "Error",
           description: "Failed to load wallet passphrases. Please try again later.",
           variant: "destructive",
-        });
+        })
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchWalletPassphrases();
-  }, [selectedWorkspaceId, selectedProjectId, accessToken]);
+    fetchWalletPassphrases()
+  }, [selectedWorkspaceId, selectedProjectId, accessToken])
 
   // Filter passphrases based on search term
   useEffect(() => {
@@ -219,25 +230,25 @@ export function WalletPassphrasesContent() {
     
     // Validate based on field name
     if (name === "passphrase") {
-      validatePassphrase(value);
+      validatePassphrase(value)
       // Check if passphrase already exists when in Add mode
       if (!isEditDialogOpen) {
-        checkIfPassphraseExists(value);
+        checkIfPassphraseExists(value)
       } else if (currentPassphrase && value !== currentPassphrase.passphrase) {
         // Only check in Edit mode if the passphrase has been changed
-        checkIfPassphraseExists(value);
+        checkIfPassphraseExists(value)
       } else {
-        setPassphraseExistsError(null);
+        setPassphraseExistsError(null)
       }
     } else if (name === "name") {
       // Check if name already exists
       if (!isEditDialogOpen) {
-        checkIfNameExists(value);
+        checkIfNameExists(value)
       } else if (currentPassphrase && value !== currentPassphrase.name) {
         // Only check in Edit mode if the name has been changed
-        checkIfNameExists(value);
+        checkIfNameExists(value)
       } else {
-        setNameExistsError(null);
+        setNameExistsError(null)
       }
     }
   }
@@ -245,55 +256,55 @@ export function WalletPassphrasesContent() {
   // Check if name already exists
   const checkIfNameExists = (name: string) => {
     if (!name.trim()) {
-      setNameExistsError(null);
-      return;
+      setNameExistsError(null)
+      return
     }
     
     const exists = walletPassphrases.some(
       (wp) => wp.name.toLowerCase().trim() === name.toLowerCase().trim() && 
               (!currentPassphrase || wp.id !== currentPassphrase.id)
-    );
+    )
     
     if (exists) {
-      setNameExistsError("A wallet with this name already exists");
+      setNameExistsError("A wallet with this name already exists")
     } else {
-      setNameExistsError(null);
+      setNameExistsError(null)
     }
   }
 
   // Check if passphrase already exists
   const checkIfPassphraseExists = (passphrase: string) => {
     if (!passphrase.trim()) {
-      setPassphraseExistsError(null);
-      return;
+      setPassphraseExistsError(null)
+      return
     }
     
     const exists = walletPassphrases.some(
       (wp) => wp.passphrase.toLowerCase().trim() === passphrase.toLowerCase().trim() && 
               (!currentPassphrase || wp.id !== currentPassphrase.id)
-    );
+    )
     
     if (exists) {
-      setPassphraseExistsError("This passphrase already exists in your wallet");
+      setPassphraseExistsError("This passphrase already exists in your wallet")
     } else {
-      setPassphraseExistsError(null);
+      setPassphraseExistsError(null)
     }
   }
 
   // Validate if the passphrase has exactly 12 words
   const validatePassphrase = (passphrase: string) => {
     // Trim the passphrase and split by whitespace (space, tab, newline)
-    const words = passphrase.trim().split(/\s+/);
+    const words = passphrase.trim().split(/\s+/)
     
     if (passphrase.trim() === "") {
-      setPassphraseError(null);
-      return false;
+      setPassphraseError(null)
+      return false
     } else if (words.length !== 12) {
-      setPassphraseError(`Passphrase must contain exactly 12 words (currently ${words.length})`);
-      return false;
+      setPassphraseError(`Passphrase must contain exactly 12 words (currently ${words.length})`)
+      return false
     } else {
-      setPassphraseError(null);
-      return true;
+      setPassphraseError(null)
+      return true
     }
   }
 
@@ -315,9 +326,9 @@ export function WalletPassphrasesContent() {
       tags: "",
       notes: "",
     })
-    setPassphraseError(null);
-    setPassphraseExistsError(null);
-    setNameExistsError(null);
+    setPassphraseError(null)
+    setPassphraseExistsError(null)
+    setNameExistsError(null)
   }
 
   // Open add dialog
@@ -337,9 +348,9 @@ export function WalletPassphrasesContent() {
       tags: passphrase.tags.join(", "),
       notes: passphrase.notes,
     })
-    setPassphraseError(null);
-    setPassphraseExistsError(null);
-    setNameExistsError(null);
+    setPassphraseError(null)
+    setPassphraseExistsError(null)
+    setNameExistsError(null)
     setIsEditDialogOpen(true)
   }
 
@@ -353,27 +364,27 @@ export function WalletPassphrasesContent() {
   const addPassphrase = async () => {
     // Validate passphrase before submitting
     if (!validatePassphrase(formData.passphrase)) {
-      return;
+      return
     }
     
     // Check if passphrase already exists
     const passphraseExists = walletPassphrases.some(
       (wp) => wp.passphrase.toLowerCase().trim() === formData.passphrase.toLowerCase().trim()
-    );
+    )
     
     if (passphraseExists) {
-      setPassphraseExistsError("This passphrase already exists in your wallet");
-      return;
+      setPassphraseExistsError("This passphrase already exists in your wallet")
+      return
     }
     
     // Check if name already exists
     const nameExists = walletPassphrases.some(
       (wp) => wp.name.toLowerCase().trim() === formData.name.toLowerCase().trim()
-    );
+    )
     
     if (nameExists) {
-      setNameExistsError("A wallet with this name already exists");
-      return;
+      setNameExistsError("A wallet with this name already exists")
+      return
     }
 
     if (!selectedWorkspaceId || !selectedProjectId || !accessToken) {
@@ -381,8 +392,8 @@ export function WalletPassphrasesContent() {
         title: "Error",
         description: "No workspace or project selected",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
     try {
@@ -390,7 +401,7 @@ export function WalletPassphrasesContent() {
       const formattedTags = formData.tags
         .split(",")
         .map((tag) => tag.trim())
-        .filter(Boolean);
+        .filter(Boolean)
       
       // Call API
       const response = await createWalletPassphrase(
@@ -404,9 +415,9 @@ export function WalletPassphrasesContent() {
           wallet_type: formData.walletType,
           tag: formattedTags,
         }
-      );
+      )
       
-      console.log('Wallet passphrase created:', response);
+      console.log('Wallet passphrase created:', response)
       
       // Create new passphrase object for UI
       const newPassphrase: WalletPassphrase = {
@@ -419,23 +430,23 @@ export function WalletPassphrasesContent() {
         notes: formData.notes,
         createdAt: new Date(),
         lastAccessed: new Date(),
-      };
+      }
 
-      setWalletPassphrases((prev) => [...prev, newPassphrase]);
-      setIsAddDialogOpen(false);
-      resetFormData();
+      setWalletPassphrases((prev) => [...prev, newPassphrase])
+      setIsAddDialogOpen(false)
+      resetFormData()
 
       toast({
         title: "Passphrase added",
         description: "Your wallet passphrase has been securely stored.",
-      });
+      })
     } catch (error) {
-      console.error("Error adding passphrase:", error);
+      console.error("Error adding passphrase:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to add wallet passphrase",
         variant: "destructive",
-      });
+      })
     }
   }
 
@@ -443,21 +454,21 @@ export function WalletPassphrasesContent() {
   const editPassphrase = async () => {
     // Validate passphrase before submitting
     if (!validatePassphrase(formData.passphrase)) {
-      return;
+      return
     }
     
-    if (!currentPassphrase) return;
+    if (!currentPassphrase) return
     
     // Check if the updated passphrase already exists (and it's not the current one)
     if (formData.passphrase !== currentPassphrase.passphrase) {
       const passphraseExists = walletPassphrases.some(
         (wp) => wp.passphrase.toLowerCase().trim() === formData.passphrase.toLowerCase().trim() && 
                 wp.id !== currentPassphrase.id
-      );
+      )
       
       if (passphraseExists) {
-        setPassphraseExistsError("This passphrase already exists in your wallet");
-        return;
+        setPassphraseExistsError("This passphrase already exists in your wallet")
+        return
       }
     }
     
@@ -466,11 +477,11 @@ export function WalletPassphrasesContent() {
       const nameExists = walletPassphrases.some(
         (wp) => wp.name.toLowerCase().trim() === formData.name.toLowerCase().trim() && 
                 wp.id !== currentPassphrase.id
-      );
+      )
       
       if (nameExists) {
-        setNameExistsError("A wallet with this name already exists");
-        return;
+        setNameExistsError("A wallet with this name already exists")
+        return
       }
     }
     
@@ -479,8 +490,8 @@ export function WalletPassphrasesContent() {
         title: "Error",
         description: "No workspace or project selected",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
     try {
@@ -488,7 +499,7 @@ export function WalletPassphrasesContent() {
       const formattedTags = formData.tags
         .split(",")
         .map((tag) => tag.trim())
-        .filter(Boolean);
+        .filter(Boolean)
       
       // Call API
       await updateWalletPassphrase(
@@ -503,7 +514,7 @@ export function WalletPassphrasesContent() {
           wallet_type: formData.walletType,
           tag: formattedTags,
         }
-      );
+      )
       
       const updatedPassphrase: WalletPassphrase = {
         ...currentPassphrase,
@@ -526,25 +537,25 @@ export function WalletPassphrasesContent() {
         description: "Your wallet passphrase has been updated successfully.",
       })
     } catch (error) {
-      console.error("Error updating passphrase:", error);
+      console.error("Error updating passphrase:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update wallet passphrase",
         variant: "destructive",
-      });
+      })
     }
   }
 
   // Delete passphrase
   const deletePassphrase = async () => {
-    if (!currentPassphrase) return;
+    if (!currentPassphrase) return
     if (!selectedWorkspaceId || !selectedProjectId || !accessToken) {
       toast({
         title: "Error",
         description: "No workspace or project selected",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
     try {
@@ -554,7 +565,7 @@ export function WalletPassphrasesContent() {
         selectedProjectId,
         currentPassphrase.id,
         accessToken
-      );
+      )
       
       setWalletPassphrases((prev) => prev.filter((item) => item.id !== currentPassphrase.id))
 
@@ -566,12 +577,12 @@ export function WalletPassphrasesContent() {
         description: "Your wallet passphrase has been deleted.",
       })
     } catch (error) {
-      console.error("Error deleting passphrase:", error);
+      console.error("Error deleting passphrase:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to delete wallet passphrase",
         variant: "destructive",
-      });
+      })
     }
   }
 
@@ -620,7 +631,7 @@ export function WalletPassphrasesContent() {
       {isLoading ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-            <div className="h-12 w-12 rounded-full border-4 border-muted-foreground/20 border-t-muted-foreground animate-spin mb-4"></div>
+            <div className="h-12 w-12ANDERED rounded-full border-4 border-muted-foreground/20 border-t-muted-foreground animate-spin mb-4"></div>
             <h3 className="text-lg font-medium">Loading wallet passphrases...</h3>
             <p className="text-sm text-muted-foreground mt-2">
               Please wait while we fetch your secure passphrases.

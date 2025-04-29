@@ -1,9 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Building, ChevronDown, Users, Plus, Settings } from "lucide-react"
+import { Building, ChevronDown, Users} from "lucide-react"
 import { WorkspaceSwitcherDialog } from "@/components/workspace-switcher-dialog"
 import {
   DropdownMenu,

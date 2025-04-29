@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Link, useRouter, getLocalizedPath } from './navigation';
+import { Link, useRouter} from './navigation';
 
 export default function LocalizedContent({ locale }: { locale: string }) {
   const t = useTranslations('navigation');

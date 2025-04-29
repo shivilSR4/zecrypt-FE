@@ -23,6 +23,22 @@ export function UpdatePasswordModal({ onClose }: UpdatePasswordModalProps) {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const validatePassword = (password: string): string | null => {
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long"
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must include at least one uppercase letter"
+    }
+    if (!/\d/.test(password)) {
+      return "Password must include at least one number"
+    }
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+      return "Password must include at least one special character"
+    }
+    return null
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -38,8 +54,9 @@ export function UpdatePasswordModal({ onClose }: UpdatePasswordModalProps) {
       return
     }
 
-    if (newPassword.length < 8) {
-      setError("Password must be at least 8 characters long")
+    const passwordError = validatePassword(newPassword)
+    if (passwordError) {
+      setError(passwordError)
       return
     }
 
@@ -52,11 +69,12 @@ export function UpdatePasswordModal({ onClose }: UpdatePasswordModalProps) {
       // Password update logic would go here
 
       onClose()
-    } catch (err) {
-      setError("Failed to update password. Please try again.")
-    } finally {
-      setIsSubmitting(false)
-    }
+    } catch (error) {
+      console.error("Password update failed:", error);
+      setError("Failed to update password. Please try again.");
+  } finally {
+      setIsSubmitting(false);
+  }
   }
 
   return (
@@ -169,4 +187,3 @@ export function UpdatePasswordModal({ onClose }: UpdatePasswordModalProps) {
     </div>
   )
 }
-

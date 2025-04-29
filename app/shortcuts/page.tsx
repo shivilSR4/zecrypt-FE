@@ -1,4 +1,5 @@
 import { KeyboardShortcutsHelp } from "@/components/keyboard-shortcuts-help"
+import Link from "next/link"
 
 export default function ShortcutsPage() {
   return (
@@ -14,9 +15,9 @@ export default function ShortcutsPage() {
         </div>
 
         <div className="mt-8 text-center">
-          <a href="/dashboard" className="text-primary hover:underline">
+          <Link href="/dashboard" className="text-primary hover:underline">
             Return to Dashboard
-          </a>
+          </Link>
         </div>
       </div>
     </div>

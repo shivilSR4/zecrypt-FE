@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, Users, Lock, FileText, Shield, User } from "lucide-react";
+import { TrendingUp, Users, Lock, FileText, Shield} from "lucide-react";
 import { useUser } from "@stackframe/stack";
 import { useEffect } from "react";
 import { loadInitialData } from "../libs/getWorkspace";
@@ -10,7 +10,7 @@ import { RootState, AppDispatch } from "../libs/Redux/store";
 import { useSelector, useDispatch } from "react-redux";
 import { setWorkspaceData } from "../libs/Redux/workspaceSlice";
 import { Workspace } from "../libs/Redux/workspaceSlice";
-import { log } from "node:console";
+
 
 export function OverviewContent() {
   const user = useUser();

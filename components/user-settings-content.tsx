@@ -9,57 +9,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import { useTranslator } from "@/hooks/use-translations"
 
 import {
   User,
-  Shield,
-  Camera,
-  Upload,
-  Trash,
-  Mail,
   AlertCircle,
   Smartphone,
-  Search,
   Clock,
-  Monitor,
   Laptop,
   Globe,
-  AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  Bell,
-  Key,
-  Users,
-  Megaphone,
   FileText,
-  Download,
-  Filter,
   RotateCcw,
-  Settings,
   Loader2,
   Tablet,
 } from "lucide-react"
-import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { UpdatePasswordModal } from "@/components/update-password-modal"
 import { useRouter, usePathname } from "next/navigation"
 import { locales } from "@/middleware"
-import { useTranslations } from "next-intl"
 import { fetchLoginHistory, formatDate, getDeviceInfo } from "@/libs/api-client"
 import { useUser } from '@stackframe/stack'
+
+// Define the type for the locales array
+type LocaleType = string;
 
 // Interface for login history entry
 interface LoginHistoryEntry {
@@ -77,6 +51,9 @@ interface LoginHistoryEntry {
   };
 }
 
+// Type for error handling
+type ErrorType = string | null;
+
 export function UserSettingsContent() {
   const [activeTab, setActiveTab] = useState("profile")
   const [name, setName] = useState("")
@@ -84,8 +61,8 @@ export function UserSettingsContent() {
   const [avatarSrc, setAvatarSrc] = useState("/placeholder.svg?height=128&width=128")
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const [error, setError] = useState<ErrorType>(null)
+  const [success, setSuccess] = useState<ErrorType>(null)
   const router = useRouter();
   const pathname = usePathname();
   const { translate } = useTranslator();
@@ -95,7 +72,7 @@ export function UserSettingsContent() {
   // Login history state
   const [loginHistory, setLoginHistory] = useState<LoginHistoryEntry[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [historyError, setHistoryError] = useState<ErrorType>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const entriesPerPage = 5;
   
@@ -121,12 +98,7 @@ export function UserSettingsContent() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profile`, {
           credentials: "include",
         });
-        if (!res.ok) {
-          // Silently log the error without setting it to state
-          console.error("Failed to fetch profile");
-          setLoading(false);
-          return;
-        }
+        if (!res.ok) throw new Error("Failed to fetch profile");
         const data = await res.json();
         if (data?.data) {
           setName(data.data.name || "");
@@ -134,9 +106,9 @@ export function UserSettingsContent() {
           setAvatarSrc(data.data.profile_url || "/placeholder.svg?height=128&width=128");
           setCurrentLocale(data.data.language || "en");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         // Silently log the error without setting it to state
-        console.error("Error fetching profile:", err.message || "Failed to load profile");
+        console.error("Error fetching profile:", err instanceof Error ? err.message : "Failed to load profile");
       } finally {
         setLoading(false);
       }
@@ -148,7 +120,7 @@ export function UserSettingsContent() {
   // Set the current locale from URL if present
   useEffect(() => {
     const pathSegments = pathname?.split('/') || [];
-    if (pathSegments.length > 1 && locales.includes(pathSegments[1] as any)) {
+    if (pathSegments.length > 1 && typeof pathSegments[1] === 'string' && locales.includes(pathSegments[1] as LocaleType)) {
       setCurrentLocale(pathSegments[1]);
     }
   }, [pathname]);
@@ -207,11 +179,6 @@ export function UserSettingsContent() {
   // Calculate total pages
   const totalPages = Math.ceil(loginHistory.length / entriesPerPage);
   
-  // Change page
-  const goToPage = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-  
   // Previous page
   const goToPreviousPage = () => {
     setCurrentPage(prev => Math.max(prev - 1, 1));
@@ -223,7 +190,7 @@ export function UserSettingsContent() {
   };
   
   // Localized labels for languages
-  const languageLabels = {
+  const languageLabels: Record<string, string> = {
     en: "English",
     fr: "French (Français)",
     es: "Spanish (Español)",
@@ -259,8 +226,8 @@ export function UserSettingsContent() {
   
   // Sort locales by display name
   const sortedLocales = [...locales].sort((a, b) => {
-    const nameA = languageLabels[a as keyof typeof languageLabels] || a;
-    const nameB = languageLabels[b as keyof typeof languageLabels] || b;
+    const nameA = languageLabels[a] || a;
+    const nameB = languageLabels[b] || b;
     return nameA.localeCompare(nameB);
   });
   
@@ -290,13 +257,13 @@ export function UserSettingsContent() {
       setSuccess("Profile updated successfully");
       // Optionally update the URL to reflect the new locale
       const segments = pathname?.split('/') || [];
-      if (segments.length > 1 && locales.includes(segments[1] as any)) {
+      if (segments.length > 1 && typeof segments[1] === 'string' && locales.includes(segments[1] as LocaleType)) {
         segments[1] = currentLocale;
         const newPath = segments.join('/');
         if (newPath !== pathname) router.push(newPath);
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to update profile");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -377,7 +344,7 @@ export function UserSettingsContent() {
                         <SelectContent>
                           {sortedLocales.map(locale => (
                             <SelectItem key={locale} value={locale}>
-                              {languageLabels[locale as keyof typeof languageLabels] || locale}
+                              {languageLabels[locale] || locale}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -528,24 +495,3 @@ export function UserSettingsContent() {
     </div>
   )
 }
-
-function SettingsIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  )
-}
-

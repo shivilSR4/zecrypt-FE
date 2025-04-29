@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter as useNextRouter } from 'next/navigation';
 import Link from 'next/link';
-import { locales } from '../../middleware';
+
 
 // Export the Link component from Next.js
 export { Link };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/libs/Redux/store";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ChevronDown, Eye, EyeOff, X, Plus, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslator } from "@/hooks/use-translations";
-import { hashData, encrypt, hexToCryptoKey, ENCRYPTION_KEY } from "../libs/crypto";
+import { encrypt, hexToCryptoKey, ENCRYPTION_KEY } from "../libs/crypto";
 import axiosInstance from "../libs/Middleware/axiosInstace";
 
 interface Account {
@@ -114,24 +114,15 @@ export function EditAccountDialog({ account, onClose, onAccountUpdated }: EditAc
       } else {
         throw new Error(response.data?.message || translate("failed_to_update_account", "accounts"));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating account:", error);
+      let errorMessage = translate("error_updating_account", "accounts");
       
-      if (error.response) {
-        if (error.response.status === 400) {
-          setError(error.response.data?.message || translate("invalid_input", "accounts"));
-        } else if (error.response.status === 404) {
-          setError(translate("account_not_found", "accounts"));
-        } else if (error.response.status === 500) {
-          setError(translate("error_updating_account", "accounts"));
-        } else {
-          setError(error.response.data?.message || translate("failed_to_update_account", "accounts"));
-        }
-      } else if (error.request) {
-        setError(translate("network_error", "accounts"));
-      } else {
-        setError(`${translate("error_updating_account", "accounts")}: ${error.message}`);
+      if (error instanceof Error) {
+        errorMessage = `${translate("error_updating_account", "accounts")}: ${error.message}`;
       }
+      
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

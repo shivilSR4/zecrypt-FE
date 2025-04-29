@@ -17,7 +17,6 @@ import { Badge } from "@/components/ui/badge";
 import { EditAccountDialog } from "@/components/edit-account-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslator } from "@/hooks/use-translations";
-import { useRouter } from "next/navigation";
 import axiosInstance from "../libs/Middleware/axiosInstace";
 import { decrypt, hexToCryptoKey, ENCRYPTION_KEY } from "../libs/crypto";
 
@@ -38,9 +37,18 @@ interface Account {
   decryptionError?: boolean;
 }
 
+// Define error types
+type ErrorWithMessage = {
+  message: string;
+  response?: {
+    data?: {
+      message?: string;
+    }
+  }
+};
+
 export function AccountsContent() {
   const { translate } = useTranslator();
-  const router = useRouter();
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [showGeneratePassword, setShowGeneratePassword] = useState(false);
   const [showEditAccount, setShowEditAccount] = useState(false);
@@ -57,7 +65,7 @@ export function AccountsContent() {
 
   const selectedWorkspaceId = useSelector((state: RootState) => state.workspace.selectedWorkspaceId);
   const selectedProjectId = useSelector((state: RootState) => state.workspace.selectedProjectId);
-  const currentLocale = useSelector((state: RootState) => state.user.userData?.locale || "en");
+  const currentLocale = useSelector((state: RootState) => state.user.userData?.language|| "en");
 
   // Check if a string appears to be a hash (e.g., SHA-512)
   const isLikelyHash = (str: string): boolean => {
@@ -272,17 +280,17 @@ export function AccountsContent() {
           }
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching accounts:", error);
       let errorMessage = translate("error_fetching_accounts", "accounts");
-      if (error.response?.data?.message) {
-        errorMessage = `${errorMessage}: ${error.response.data.message}`;
+      if ((error as ErrorWithMessage).response?.data?.message) {
+        errorMessage = `${errorMessage}: ${(error as ErrorWithMessage).response?.data?.message}`;
       }
       alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedWorkspaceId, selectedProjectId, currentPage, itemsPerPage, searchQuery, selectedCategory, decryptAccountData, getCategoryTag, ]);
+  }, [selectedWorkspaceId, selectedProjectId, currentPage, itemsPerPage, searchQuery, selectedCategory, decryptAccountData, getCategoryTag,]);
 
   useEffect(() => {
     fetchAccounts();
@@ -349,11 +357,11 @@ export function AccountsContent() {
         await axiosInstance.delete(`/${selectedWorkspaceId}/${selectedProjectId}/accounts/${doc_id}`);
         fetchAccounts();
         alert(translate("account_deleted_successfully", "accounts"));
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error deleting account:", error);
         let errorMessage = translate("error_deleting_account", "accounts");
-        if (error.response?.data?.message) {
-          errorMessage = `${errorMessage}: ${error.response.data.message}`;
+        if ((error as ErrorWithMessage).response?.data?.message) {
+          errorMessage = `${errorMessage}: ${(error as ErrorWithMessage).response?.data?.message}`;
         }
         alert(errorMessage);
       }
@@ -392,7 +400,7 @@ export function AccountsContent() {
     } else {
       const half = Math.floor(maxPagesToShow / 2);
       let start = Math.max(1, currentPage - half);
-      let end = Math.min(totalPages, start + maxPagesToShow - 1);
+      const end = Math.min(totalPages, start + maxPagesToShow - 1);
 
       if (end - start < maxPagesToShow - 1) {
         start = end - maxPagesToShow + 1;
@@ -716,7 +724,7 @@ export function AccountsContent() {
                     setCurrentPage(1);
                   }}
                 >
-                  <SelectTrigger className="h-8 w-[70px]">
+                                   <SelectTrigger className="h-8 w-[70px]">
                     <SelectValue placeholder={itemsPerPage.toString()} />
                   </SelectTrigger>
                   <SelectContent>

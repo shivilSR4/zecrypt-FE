@@ -22,10 +22,10 @@ import {
   X,
   Globe,
   Users,
-} from "lucide-react"
-import { cn } from "@/libs/utils"
-import { GeneratePasswordDialog } from "@/components/generate-password-dialog"
-import { ThemeToggle } from "@/components/theme-toggle"
+} from "lucide-react";
+import { cn } from "@/libs/utils";
+import { GeneratePasswordDialog } from "@/components/generate-password-dialog";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,21 +33,20 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { UserProfileDialog } from "@/components/user-profile-dialog"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ProjectDialog } from "@/components/project-dialog"
-import { CommandPalette } from "@/components/command-palette"
-import { KeyboardShortcutsHelp } from "@/components/keyboard-shortcuts-help"
-import { EncryptionKeyModal } from "@/components/encryption-key-modal"
-import { useRouter } from "next/navigation"
-import { locales } from "@/middleware"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ProjectDialog } from "@/components/project-dialog";
+import { CommandPalette } from "@/components/command-palette";
+import { KeyboardShortcutsHelp } from "@/components/keyboard-shortcuts-help";
+import { EncryptionKeyModal } from "@/components/encryption-key-modal";
+import { useRouter } from "next/navigation";
+import { locales } from "@/middleware";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/libs/Redux/store";
 import { clearUserData } from "@/libs/Redux/userSlice";
 import { useUser } from "@stackframe/stack";
-import { useTranslator } from "@/hooks/use-translations"
+import { useTranslator } from "@/hooks/use-translations";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -80,8 +79,9 @@ export function DashboardLayout({ children, locale = 'en' }: DashboardLayoutProp
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const searchParams = useSearchParams();
-  const [showFavoritesDialog, setShowFavoritesDialog] = useState(false);
   const [favoriteTags, setFavoriteTags] = useState(["Personal", "Work", "Banking"]);
+  // Create a dialog state and handler for adding new favorite tags
+  const [showFavoritesDialog, setShowFavoritesDialog] = useState(false);
 
   const [currentLocale, setCurrentLocale] = useState(locale);
   
@@ -157,6 +157,14 @@ export function DashboardLayout({ children, locale = 'en' }: DashboardLayoutProp
     setFavoriteTags(favoriteTags.filter((tag) => tag !== tagToRemove));
   };
 
+  // Add a handler for adding new favorite tags
+  const addTag = (newTag: string) => {
+    if (newTag && !favoriteTags.includes(newTag)) {
+      setFavoriteTags([...favoriteTags, newTag]);
+    }
+    setShowFavoritesDialog(false);
+  };
+
   // Define handleLogout using useCallback to avoid recreating it on every render
   const handleLogout = useCallback(async () => {
     try {
@@ -222,34 +230,34 @@ export function DashboardLayout({ children, locale = 'en' }: DashboardLayoutProp
 
       switch (e.key.toLowerCase()) {
         case "k": // Command palette is handled separately
-          break
+          break;
         case "g": // Generate password
-          setShowGeneratePassword(true)
-          break
+          setShowGeneratePassword(true);
+          break;
         case "p": // Project switcher
-          setShowProjectDialog(true)
-          break
+          setShowProjectDialog(true);
+          break;
         case "d": // Dashboard
-          router.push(`/${currentLocale}/dashboard`)
-          break
+          router.push(`/${currentLocale}/dashboard`);
+          break;
         case "a": // Accounts
-          router.push(`/${currentLocale}/dashboard/accounts`)
-          break
+          router.push(`/${currentLocale}/dashboard/accounts`);
+          break;
         case "f": // Files
-          router.push(`/${currentLocale}/dashboard/files`)
-          break
+          router.push(`/${currentLocale}/dashboard/files`);
+          break;
         case "n": // Notifications
-          router.push(`/${currentLocale}/dashboard/notifications`)
-          break
+          router.push(`/${currentLocale}/dashboard/notifications`);
+          break;
         case "s": // Settings
-          router.push(`/${currentLocale}/dashboard/user-settings`)
-          break
+          router.push(`/${currentLocale}/dashboard/user-settings`);
+          break;
         case "t": // Toggle theme
-          document.dispatchEvent(new CustomEvent("toggle-theme-event"))
-          break
+          document.dispatchEvent(new CustomEvent("toggle-theme-event"));
+          break;
         case "l": // Logout
           handleLogout();
-          break
+          break;
       }
     };
 
@@ -283,9 +291,9 @@ export function DashboardLayout({ children, locale = 'en' }: DashboardLayoutProp
 
   const handleEncryptionKeyCancel = () => {
     // If user cancels, redirect back to login with the current locale
-    setShowEncryptionKeyModal(false)
-    router.push(`/${currentLocale}/login`)
-  }
+    setShowEncryptionKeyModal(false);
+    router.push(`/${currentLocale}/login`);
+  };
 
   // Sort locales by display name
   const sortedLocales = [...locales].sort((a, b) => {
@@ -536,26 +544,25 @@ export function DashboardLayout({ children, locale = 'en' }: DashboardLayoutProp
             </form>
           </div>
 
-          
-<TooltipProvider>
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <Button
-        variant="default"
-        onClick={() => setShowGeneratePassword(true)}
-        className="theme-button flex items-center gap-2 px-4 py-2"
-      >
-        <Key className="h-5 w-5" />
-        <span>{translate("generate_password", "dashboard")}</span>
-      </Button>
-    </TooltipTrigger>
-    <TooltipContent>
-      <p>{translate("generate_password", "dashboard")}</p>
-    </TooltipContent>
-  </Tooltip>
-</TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="default"
+                  onClick={() => setShowGeneratePassword(true)}
+                  className="theme-button flex items-center gap-2 px-4 py-2"
+                >
+                  <Key className="h-5 w-5" />
+                  <span>{translate("generate_password", "dashboard")}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{translate("generate_password", "dashboard")}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-          {/* Replace WorkspaceSwitcherNav with static workspace display */}
+          {/* Static workspace display */}
           <div className="flex items-center gap-2 px-3 py-1.5">
             <Users className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">{workspaceName}</span>
@@ -608,6 +615,37 @@ export function DashboardLayout({ children, locale = 'en' }: DashboardLayoutProp
           onClose={handleEncryptionKeySubmit}
           onCancel={handleEncryptionKeyCancel}
         />
+      )}
+      
+      {/* Add a basic dialog component for adding new favorite tags */}
+      {showFavoritesDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-background p-6 rounded-lg shadow-lg w-80">
+            <h3 className="text-lg font-medium mb-4">Add Favorite Tag</h3>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const input = e.currentTarget.elements.namedItem('tagName') as HTMLInputElement;
+              addTag(input.value);
+            }}>
+              <input 
+                name="tagName"
+                className="w-full rounded-md border border-border bg-background py-2 px-3 text-sm mb-4"
+                placeholder="Enter tag name"
+                autoFocus
+              />
+              <div className="flex justify-end gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setShowFavoritesDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Add Tag</Button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

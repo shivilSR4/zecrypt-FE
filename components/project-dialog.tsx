@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -20,10 +21,8 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useSelector, useDispatch } from "react-redux";
@@ -332,9 +331,10 @@ function EditProjectDialog({ project, workspaceId, onClose }: EditProjectDialogP
       }
 
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("EditProject error:", err);
-      setError(err.message || "An error occurred while updating the project");
+      const errorMessage = err instanceof Error ? err.message : "An error occurred while updating the project";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -536,9 +536,10 @@ function CreateProjectDialog({ workspaceId, onClose }: CreateProjectDialogProps)
 
       dispatch(setSelectedProject({ projectId: newProject.project_id }));
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("CreateProject error:", err);
-      setError(err.message || "An error occurred while creating the project");
+      const errorMessage = err instanceof Error ? err.message : "An error occurred while creating the project";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -675,9 +676,10 @@ function DeleteProjectDialog({ projectId, projectName }: DeleteProjectDialogProp
           projectId,
         })
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("DeleteProject error:", err);
-      setError(err.message || "An error occurred while deleting the project");
+      const errorMessage = err instanceof Error ? err.message : "An error occurred while deleting the project";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -694,7 +696,7 @@ function DeleteProjectDialog({ projectId, projectName }: DeleteProjectDialogProp
         <AlertDialogHeader>
           <DialogTitle>Delete project</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete "{projectName}"? This action cannot be undone.
+            Are you sure you want to delete <span className="font-medium">{projectName}</span>? This action cannot be undone.
           </DialogDescription>
         </AlertDialogHeader>
         {error && (

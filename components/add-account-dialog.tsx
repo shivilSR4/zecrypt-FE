@@ -89,21 +89,31 @@ export function AddAccountDialog({ onClose, onAccountAdded }: AddAccountDialogPr
       } else {
         throw new Error(response.data?.message || translate("failed_to_add_account", "accounts"));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error adding account:", error);
       
-      if (error.response) {
-        if (error.response.status === 400 && error.response.data?.message === "Account already exists") {
+      if (error instanceof Error && 'response' in error) {
+        const axiosError = error as {
+          response?: {
+            status?: number;
+            data?: {
+              message?: string;
+            };
+          };
+          request?: unknown;
+        };
+    
+        if (axiosError.response?.status === 400 && axiosError.response.data?.message === "Account already exists") {
           setError(translate("account_already_exists", "accounts"));
-        } else if (error.response.status === 500) {
+        } else if (axiosError.response?.status === 500) {
           setError(translate("error_adding_account", "accounts"));
         } else {
-          setError(error.response.data?.message || translate("failed_to_add_account", "accounts"));
+          setError(axiosError.response?.data?.message || translate("failed_to_add_account", "accounts"));
         }
-      } else if (error.request) {
-        setError(translate("network_error", "accounts"));
-      } else {
+      } else if (error instanceof Error) {
         setError(`${translate("error_adding_account", "accounts")}: ${error.message}`);
+      } else {
+        setError(translate("network_error", "accounts"));
       }
     } finally {
       setIsSubmitting(false);
